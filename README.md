@@ -38,7 +38,8 @@ which in turn runs
     singleton-command foo-id-123 ./foo
     
 in a subshell, thus creating two processes containing the key
-`foo-id-123`, which will prevent your `./foo` process from being run.
+`foo-id-123`, which will prevent `singleton-command` from
+excuting `./foo`.
 
 This limitation can be worked around by using a wrapper script that
 runs the `singleton-command` command, and having the cron entry reference
