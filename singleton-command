@@ -1,0 +1,54 @@
+#! /usr/bin/python
+
+# usage:
+#   singleton-command KEY COMMAND
+#
+# Run COMMAND unless it's already running.
+#
+# More specifically, checks the current process list for any processes (other
+# than the current one) whose argument list contains KEY.  If no such process
+# is found, runs COMMAND as a subprocess.  If there is already a process running
+# containing KEY, exit immediately with no error.
+
+import os, subprocess, sys, re
+
+def bash_command(command):
+    """Run command in a bash subshell, and return its output as a string"""
+    return subprocess.Popen(['/bin/bash', '-c', command],
+                            stdout=subprocess.PIPE).communicate()[0].strip()
+
+key = sys.argv[1]
+command = sys.argv[2]
+
+def get_processes():
+    """Return a python array giving info about all currently running processes.  Each
+    item in the array is a python dictionary having keys 'pid' and 'args', which give
+    the pid and arg list of a process as values. The 'pid' value is an int, and the
+    'args' value is a (single) string."""
+    r = re.compile(r'^\s*(\d+)\s+(.*)$')
+    ps = []
+    for p in re.split(r'\n', bash_command("ps -eawwo pid,args")):
+        s = r.match(p)
+        if s:
+            ps.append({ 'pid' : int(s.group(1)),
+                        'args' : s.group(2) })
+    return ps
+
+def count_nonself_matches(ps, pattern):
+    """Take a list of processes of the form returned by get_processes(), and a regex
+    pattern string, and return a count of the number of processes in the list other
+    than the current process, whose args string contains a match for the pattern."""
+    n = 0
+    r  = re.compile(pattern)
+    pid = os.getpid()
+    for p in ps:
+        if p['pid'] != pid:
+            m  = r.search(p['args'])
+            if m:
+                n = n + 1
+    return n
+
+if count_nonself_matches(get_processes(), key) == 0:
+    sys.exit(os.system(command))
+else:
+    sys.exit(0)
