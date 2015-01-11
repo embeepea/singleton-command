@@ -22,7 +22,7 @@ tagging/identifying processes.
 Conceptually, this is a low-tech kind of locking mechanism.  Note
 that this technique is not as robust as
 a real locking mechanism.  In particular, be mindful
-of situations where the `singleton command` command may get
+of situations where the `singleton-command` command may get
 repeated in a subshell.  In particular, if you put something
 like
 
