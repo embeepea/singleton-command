@@ -17,4 +17,29 @@ exit status.  If a process other than the current one is found with
 KEY in its argument list, exits immediately with no error.
 
 KEY can be any string and simply serves as a general way of
-tagging/identifying a specific process.
+tagging/identifying processes.
+
+Conceptually, this is a low-tech kind of locking mechanism.  Note
+that this technique has some gotchas, and is not as robust as
+a real locking mechanism.  In particular, be mindful
+of situations where the `singleton command` command may get
+repeated in a subshell.  In particular, if you put something
+like
+
+    singleton-command foo-id-123 ./foo
+    
+in a crontab file for running as a cron job, the cron
+system will execute the command
+
+    sh -c 'singleton-command foo-id-123 ./foo'
+    
+which in turn runs
+
+    singleton-command foo-id-123 ./foo
+    
+in a subshell, thus creating two processes containing the key
+`foo-id-123`, which will prevent your `./foo` process from being run.
+
+This limitation can be worked around by using a wrapper script that
+runs the `singleton-command` command, and having the cron entry reference
+the wrapper script.
